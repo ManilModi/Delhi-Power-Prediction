@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect
 from django.shortcuts import (get_object_or_404, render, HttpResponseRedirect)
 from django.http import HttpResponse
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout,authenticate
 from django.contrib import messages
-from .forms import LoginForm, UserRegistrationForm,AdminUserCreationForm
+from .forms import LoginForm, UserRegistrationForm,AdminUserCreationForm,PasswordChangeForm
+from .forms import PasswordChangeForm, generate_random_password
+from django.core.mail import send_mail
 from .models import Userstable, Roles,UserRole
+from .decorators import role_required
 import os
 import folium
 import pandas as pd
@@ -38,12 +41,12 @@ def user_login(request):
                     request.session['user_role'] = role_name
 
                     # Redirect based on role
-                    if role_name == "admin":
+                    if role_name == "Admin":
                         return redirect('admin_dashboard')
-                    elif role_name == "govt_engineer":
+                    elif role_name == "Government Engineer":
                         return redirect('govt_dashboard')
                     else:
-                        return redirect('user_dashboard')
+                        return redirect('home')
                 else:
                     messages.error(request, "Invalid credentials")
             except Userstable.DoesNotExist:
@@ -61,13 +64,21 @@ def user_logout(request):
     return redirect('login')
 
 # Dashboard Views
+@role_required(allowed_roles=['Admin'])
 def admin_dashboard(request):
+    if 'user_id' not in request.session:
+        return redirect('login')  # Force login if not authenticated
     return render(request, 'admin_dashboard.html')
 
+@role_required(allowed_roles=['Government Engineer'])
 def govt_dashboard(request):
+    if 'user_id' not in request.session:
+        return redirect('login')  # Force login if not authenticated
     return render(request, 'govt_dashboard.html')
 
 def user_dashboard(request):
+    if 'user_id' not in request.session:
+        return redirect('login')  # Force login if not authenticated
     return render(request, 'user_dashboard.html')
 
 def user_register(request):
@@ -90,6 +101,7 @@ def creatRroles(request):
 
 
 # Admin-Only View to Create Admin & Govt. Engineers
+@role_required(allowed_roles=['Admin'])
 def admin_create_user(request):
     if request.method == 'POST':
         form = AdminUserCreationForm(request.POST)
@@ -101,6 +113,48 @@ def admin_create_user(request):
         form = AdminUserCreationForm()
 
     return render(request, 'admin_create_user.html', {'form': form})
+
+def unauthorized_access(request):
+    return render(request, 'unauthorized.html')  # Create unauthorized.html template
+
+@role_required(allowed_roles=['Admin'])
+def change_user_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+
+            try:
+                user = Userstable.objects.get(username=username)
+
+                # Generate a random password
+                new_password = generate_random_password()
+
+                # Update password in plain text as per your requirement
+                user.password = new_password
+                user.save()
+
+                # Send the new password via email (only if Admin/Gov Engineer)
+                send_mail(
+                    subject='Your Password Has Been Updated',
+                    message=f'Your new password is: {new_password}',
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[username],  # Using username as email
+                    fail_silently=False,
+                )
+
+                messages.success(request, f'Password updated and emailed to {username}')
+                return redirect('admin_dashboard')
+
+            except Userstable.DoesNotExist:
+                messages.error(request, 'User not found.')
+
+    else:
+        form = PasswordChangeForm()
+
+    return render(request, 'change_password.html', {'form': form})
+
+
 # def my_form_view(request):
 #     if request.method == 'POST':
 #         form = myform(request.POST)

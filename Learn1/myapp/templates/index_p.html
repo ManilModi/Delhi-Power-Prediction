@@ -19,8 +19,12 @@
           <ul id="navlist">
             <li><a href="{% url 'home' %}">Home</a></li>
             <li><a href="about.html" target="_blank">About</a></li>
-            <li><a href="LOGIN.HTML" target="_blank">Login</a></li>
+            {% if request.session.user_id %}
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% else %}
+            <li><a href="{% url 'login' %}" target="_blank">Login</a></li>
             <li><a href="{% url 'user_registration' %}" target="_blank">Register</a></li>
+            {% endif %}
           </ul>
           <ul class="dropdown">
             <li class="dropdown-menu popup-menu">
@@ -88,7 +92,7 @@
             <ul>
               <li><a href="#">Documentation</a></li>
               <li><a href="#">Current Data</a></li>
-              <li><a href="#">Predicted Data</a></li>
+              <li><a href="{% url 'electricity_demand_plot' %}">Predicted Data</a></li>
             </ul>
           </div>
         </div>

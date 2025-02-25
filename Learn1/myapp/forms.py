@@ -67,7 +67,11 @@ class AdminUserCreationForm(forms.ModelForm):
                 fail_silently=False,
             )
 
-        return user    
+        return user  
+
+class PasswordChangeForm(forms.Form):
+    username = forms.CharField(max_length=50, label='User Email (Username)', widget=forms.TextInput(attrs={'class': 'form-control'}))
+
 # class NormalUserForm(forms.Form):
 #     USER_TYPE_CHOICES = [
 #         ('Journlaist', 'Journalist'),
