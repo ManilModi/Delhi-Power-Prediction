@@ -21,5 +21,7 @@ path('user-dashboard/', views.user_dashboard, name='user_dashboard'),
 path('createroles/', views.creatRroles, name='create_roles'),
 path('create-admin-user/', views.admin_create_user, name='admin_create_user'), 
 path('unauthorized/', views.unauthorized_access, name='unauthorized_access'),
-path('change-password/', views.change_user_password, name='change_password'),
+path('change-superuser-password/', views.change_user_password, name='change_password'),
+path('delete-user/', views.delete_user, name='delete_user'),
+path('update-credentials/', views.update_credentials, name='update_credentials'),
 ]

@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.contrib.auth import login, logout,authenticate
 from django.contrib import messages
 from .forms import LoginForm, UserRegistrationForm,AdminUserCreationForm,PasswordChangeForm
-from .forms import PasswordChangeForm, generate_random_password
+from .forms import PasswordChangeForm, generate_random_password,DeleteCredentialForm,NormalUserCredentialUpdateForm
 from django.core.mail import send_mail
 from .models import Userstable, Roles,UserRole
 from .decorators import role_required
@@ -76,6 +76,7 @@ def govt_dashboard(request):
         return redirect('login')  # Force login if not authenticated
     return render(request, 'govt_dashboard.html')
 
+@role_required(allowed_roles=['Normal User', 'Entrepreneur', 'Researcher'])
 def user_dashboard(request):
     if 'user_id' not in request.session:
         return redirect('login')  # Force login if not authenticated
@@ -107,7 +108,8 @@ def admin_create_user(request):
         form = AdminUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            # messages.success(request, "Admin/Govt. Engineer account created! Credentials sent via email.")
+
+            messages.success(request, "Admin/Govt. Engineer account created! Credentials sent via email.")
             return redirect('admin_dashboard')
     else:
         form = AdminUserCreationForm()
@@ -123,6 +125,7 @@ def change_user_password(request):
         form = PasswordChangeForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
+            logged_in_user = request.session.get('user_id')  # Get logged-in admin's ID
 
             try:
                 user = Userstable.objects.get(username=username)
@@ -130,7 +133,7 @@ def change_user_password(request):
                 # Generate a random password
                 new_password = generate_random_password()
 
-                # Update password in plain text as per your requirement
+                # Update password in plain text
                 user.password = new_password
                 user.save()
 
@@ -143,7 +146,15 @@ def change_user_password(request):
                     fail_silently=False,
                 )
 
-                messages.success(request, f'Password updated and emailed to {username}')
+                # messages.success(request, f'Password updated and emailed to {username}')
+
+                # If the admin changed their own password, force logout and ask them to re-login
+                if user.id == logged_in_user:
+                    messages.warning(request, "You changed your own password. Please log in again.")
+                    request.session.flush()  # Clears the session
+                    return redirect('login')
+
+                messages.success(request, f"User {username}'s password has been changed successfully.")
                 return redirect('admin_dashboard')
 
             except Userstable.DoesNotExist:
@@ -154,6 +165,72 @@ def change_user_password(request):
 
     return render(request, 'change_password.html', {'form': form})
 
+@role_required(allowed_roles=['Admin'])
+def delete_user(request):
+    if request.method == 'POST':
+        form = DeleteCredentialForm(request.POST)
+        if form.is_valid():  # Ensure validation passes before proceeding
+            username = form.cleaned_data['username']
+            logged_in_user_id = request.session.get('user_id')  # Current admin's ID
+
+            try:
+                user = Userstable.objects.get(username=username)
+
+                # Ensure admin cannot delete themselves
+                if user.id == logged_in_user_id:
+                    messages.error(request, "You cannot delete your own credential.")
+                    return redirect('delete_user')
+
+                # Delete user credentials
+                user.delete()
+
+                # Send email notification
+                send_mail(
+                    subject="Your Account Has Been Deleted",
+                    message=f"Hello {username},\n\nYour account has been deleted by the Admin.\n\n",
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[username],  # Assuming username is email
+                    fail_silently=False,
+                )
+
+                messages.success(request, f"User {username} has been deleted successfully.")
+                return redirect('admin_dashboard')
+
+            except Userstable.DoesNotExist:
+                messages.error(request, "User not found.")
+        else:
+            # If the form is not valid, Django will handle showing the errors
+            messages.error(request, "Invalid form submission. Please check the details.")
+    
+    else:
+        form = DeleteCredentialForm()
+
+    return render(request, 'delete_credential.html', {'form': form})
+
+@role_required(allowed_roles=['Normal User', 'Entrepreneur', 'Researcher'])
+def update_credentials(request):
+    if request.method == 'POST':
+        form = NormalUserCredentialUpdateForm(request.POST)
+        if form.is_valid():
+            new_username = form.cleaned_data.get('new_username')
+            new_password = form.cleaned_data.get('new_password')
+            user = Userstable.objects.get(id=request.session['user_id'])
+
+            user.username = new_username
+            user.password = new_password
+            user.save()
+            messages.success(request, 'Your credentials have been successfully updated.')
+            user_logout(request)
+            return redirect('user_dashboard')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.capitalize()}: {error}")
+    else:
+        form = NormalUserCredentialUpdateForm()
+
+    return render(request, 'update_credentials.html', {'form': form})
 
 # def my_form_view(request):
 #     if request.method == 'POST':

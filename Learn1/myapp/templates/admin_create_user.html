@@ -1,15 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% load widget_tweaks %}
+    {% load static %}
     <title>Create Admin/Govt. Engineer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h2>Create Admin/Govt. Engineer</h2>
+<body class="d-flex justify-content-center align-items-center vh-100" style="background-color: #212529;">
+<div class="card shadow p-4" style="width: 28rem; background-color: #343a40; color: white;">
+    <h3 class="text-center mb-4">Create Admin/Govt. Engineer</h3>
+
+    {% if form.username.errors %}
+        <div class="alert alert-danger">
+            {% for error in form.username.errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Create User</button>
+        <div class="mb-3">
+            <label class="form-label">Username (Email Address)</label>
+            {{ form.username|add_class:"form-control" }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Select Role</label>
+            {{ form.role|add_class:"form-control" }}
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Create User</button>
     </form>
-    <a href="{% url 'admin_dashboard' %}">Back to Admin Dashboard</a>
+    <div class="text-center mt-3">
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Back to Admin Dashboard</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

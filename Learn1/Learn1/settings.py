@@ -133,14 +133,14 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR , "static")]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Email Configuration (Use Your SMTP Provider)
+# Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Example: Gmail SMTP Server
+EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'annibhaino3@gmail.com'  # Replace with your email
 EMAIL_HOST_PASSWORD = 'fsqgklezxlerubhu'  # Use an App Password if using Gmail
 
-# Session Settings (Optional)
+# Session Settings 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default: Database-backed sessions
 SESSION_COOKIE_AGE = 1200  # Session expires in 20 minutes
