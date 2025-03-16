@@ -1,0 +1,13 @@
+numpy
+pandas
+scikit-learn
+xgboost
+seaborn
+matplotlib
+statsmodels
+beautifulsoup4
+requests
+selenium
+flask
+gunicorn
+sqlalchemy
