@@ -1,3 +1,13 @@
+Django
+djangorestframework
+mysqlclient  # Use psycopg2 if PostgreSQL is used
+gunicorn  # For deployment
+whitenoise  # Serves static files in production
+django-cors-headers  # Handles CORS issues
+djangorestframework-simplejwt  # JWT authentication
+requests  # For API requests
+beautifulsoup4  # Web scraping
+selenium  # Advanced web scraping
 numpy
 pandas
 scikit-learn
@@ -5,9 +15,6 @@ xgboost
 seaborn
 matplotlib
 statsmodels
-beautifulsoup4
-requests
-selenium
-flask
-gunicorn
-sqlalchemy
+plotly  # Interactive visualizations
+faiss-cpu  # FAISS for similarity search (use faiss-gpu if using GPU)
+torch  # If embeddings involve deep learning
