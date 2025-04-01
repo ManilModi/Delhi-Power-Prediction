@@ -17,7 +17,7 @@
         <nav class="navbar">
           <ul id="navlist">
             <li><a href="{% url 'home' %}">Home</a></li>
-            <li><a href="about.html" target="_blank">About</a></li>
+            <li><a href="{% url 'about' %}">About</a></li>
             <li><a href="{% url 'electricity_demand_plot' %}">Analysis</a></li>
             <li><a href="{% url 'electricity_demand_prediction' %}">Predictions</a></li>
             <li><a href="{% url 'residential_clusters' %}">GeoMap</a></li>

@@ -18,7 +18,7 @@
             <nav class="navbar">
                 <ul class="nav">
                     <li class="nav-item"><a class="nav-link text-white" href="{% url 'home' %}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="about.html" target="_blank">About</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{% url 'about' %}">About</a></li>
                     <li>
                         {% if request.session.user_role == "Normal User" %}
                             <a href="{% url 'normal_dashboard' %}">Dashboard</a>

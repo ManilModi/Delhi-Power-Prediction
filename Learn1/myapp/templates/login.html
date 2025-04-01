@@ -14,7 +14,11 @@
     <div class="card shadow p-4" style="width: 22rem;">
         <h3 class="text-center mb-4 text-white">Login</h3>
 
-       
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-danger">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
 
         <form method="post">
             {% csrf_token %}

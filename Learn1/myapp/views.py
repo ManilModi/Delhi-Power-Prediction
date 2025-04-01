@@ -151,6 +151,16 @@ def change_user_password(request):
 
             try:
                 user = Userstable.objects.get(username=username)
+                
+                # Check if the user is an Admin or Government Engineer
+                allowed_roles = ['Admin', 'Government Engineer']
+                user_roles = UserRole.objects.filter(user=user).values_list('role__role_names', flat=True)  # Fetch role names
+                print(list(user_roles))  # Debugging: Check what roles are retrieved
+
+                if not any(role in allowed_roles for role in user_roles):
+                    messages.error(request, "You can only change passwords for Admin or Government Engineer users.")
+                    return redirect('change_user_password')
+
 
                 # Generate a random password
                 new_password = generate_random_password()
@@ -159,18 +169,16 @@ def change_user_password(request):
                 user.password = new_password
                 user.save()
 
-                # Send the new password via email (only if Admin/Gov Engineer)
+                # Send the new password via email
                 send_mail(
                     subject='Your Password Has Been Updated',
                     message=f'Your new password is: {new_password}',
                     from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=[username],  # Using username as email
+                    recipient_list=[username],  # Assuming username is an email
                     fail_silently=False,
                 )
 
-                # messages.success(request, f'Password updated and emailed to {username}')
-
-                # If the admin changed their own password, force logout and ask them to re-login
+                # If the admin changed their own password, force logout
                 if user.id == logged_in_user:
                     messages.warning(request, "You changed your own password. Please log in again.")
                     request.session.flush()  # Clears the session
@@ -858,7 +866,7 @@ def query_groq(query, retrieved_chunks):
     return response.choices[0].message.content
 
 @csrf_exempt
-@role_required(allowed_roles=['Admin', 'Government Engineer', "Entrepreneur", "Researcher", "Normal User"])
+@role_required(allowed_roles=['Admin', 'Government Engineer', 'Entrepreneur', 'Researcher', 'Normal User'])
 def chatbot_view(request):
     """Handles user queries, stores chat history, and renders response to chatbot.html"""
 
